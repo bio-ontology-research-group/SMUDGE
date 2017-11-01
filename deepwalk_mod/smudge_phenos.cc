@@ -146,9 +146,14 @@ void walk(unsigned int source, unsigned int num_walks, unsigned int length_walks
 
               r = uni(rng) % adj_phenos.size();
 	      next = adj_phenos[r];
+              target = next.node;
+              edge = next.edge;
+              walks[i].push_back(edge);
+              walks[i].push_back(target);
+              current = target;
 	  } 
 
-	/*
+	
 	 //B: if node is gene with no phenotypes, one-hop sample from adj genes with phenos
 	 else if (find(nonphenos_vec.begin(), nonphenos_vec.end(),  
           graph_dict[current]) != nonphenos_vec.end()){
@@ -161,25 +166,26 @@ void walk(unsigned int source, unsigned int num_walks, unsigned int length_walks
 	     }
 	     if (adj_phenos_genes.size() > 0){
 	         r = uni(rng) % adj_phenos_genes.size();
-		 next = adj_phenos_genes[i];    	 
+		 next = adj_phenos_genes[r];
+                 target = next.node;
+                 edge = next.edge;
+                 walks[i].push_back(edge);
+                 walks[i].push_back(target);
+                 current = target;
 	     }
-	}*/
+	}
 
 
 	//C: sample from any neigboring node
 	else{ 
 	     r = uni(rng) % graph[current].size();	
 	     next = graph[current][r];
+             target = next.node;
+             edge = next.edge;
+             walks[i].push_back(edge);
+             walks[i].push_back(target);
+             current = target;
  	}
-
-	
-	mtx.lock(); //prevent threads from doing weird things
-	target = next.node;
-	edge = next.edge;
-	walks[i].push_back(edge);
-	walks[i].push_back(target);
-	current = target;
- 	mtx.unlock();
 	}
 
         else {
