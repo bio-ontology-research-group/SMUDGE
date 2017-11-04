@@ -3,6 +3,6 @@
 Run code by:
 
 ~~~~
-./deepwalk_mod/smudge_phenos edgelist.txt mapping.txt genes_with_mouse_annotations.txt genes_without_mouse_phenos.txt  500 10 test.txt
+./smudge_cc/smudge_phenos data/edgelist.txt data/mapping.txt data/genes_with_mouse_annotations.txt data/genes_without_mouse_phenos.txt  500 10 data/test.txt
 ~~~~
 
