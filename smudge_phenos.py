@@ -53,21 +53,21 @@ def smudge_phenos(graph, num_walk, len_walk, genes_without_phenos, super_classes
                   all_walks.append(path)
               
           elif node in genes_without_phenos: 
-              neigbors = nx.single_source_shortest_path_length(graph ,source=node, cutoff=len_walk)
-              genos_adj = list(set(neigbors).intersection(set(genes_with_phenos)))
-              if not genos_adj:
-                  continue   
-              else:     
-                  geno = random.choice(genos_adj)
-                  phenos = genes_phenos[geno]
-                  pheno = random.choice(phenos)
-                  if pheno in super_classes:
-                    path2root = super_classes[pheno]
-                    path.append(node) #gene w/o pheno
-                    path.append(geno) #gene with pheno
-                    path.append(pheno) #pheno
-                    path.extend(path2root)
-                    all_walks.append(path)
+              neigbors = graph.neighbors(node) 
+              rand_node = random.choice(neigbors)
+              while(rand_node not in genes_with_phenos): #keep walking while not gene/w pheno
+                  neigbors = graph.neighbors(rand_node) 
+                  rand_node = random.choice(neigbors)
+                  path.append(rand_node)
+
+              phenos = genes_phenos[rand_node]
+              pheno = random.choice(phenos)
+              if pheno in super_classes:
+                path2root = super_classes[pheno]
+                path.append(pheno) #pheno
+                path.extend(path2root)
+                all_walks.append(path)
+                
 
     return all_walks
 
