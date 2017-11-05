@@ -53,7 +53,7 @@ def smudge_phenos(graph, num_walk, len_walk, genes_without_phenos, super_classes
                   all_walks.append(path)
               
           elif node in genes_without_phenos: 
-              neigbors = graph.neighbors(node) #better consider one adj node or (len_walk adj nodes TODO)
+              neigbors = nx.single_source_shortest_path_length(graph ,source=node, cutoff=len_walk)
               genos_adj = list(set(neigbors).intersection(set(genes_with_phenos)))
               if not genos_adj:
                   continue   
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     print('Training the graph corpus...')
     model = Word2Vec(walks,size=512, window=10, min_count=1, sg =1, workers=24)
 
-    model.save_word2vec_format(data+'mouse_embeddings_500.txt')
+    model.save_word2vec_format(data+'mouse_embeddings_500_1.txt')
 
     pdb.set_trace()
 
