@@ -18,7 +18,7 @@ def read_into_dict(file_):
   return some_dict
 
 
-def smudge_phenos(graph, num_walk, len_walk, genes_without_phenos, super_classes, genes_phenos, disease_phenos):
+def smudge_phenos(graph, num_walk, genes_without_phenos, super_classes, genes_phenos, disease_phenos):
     
     all_walks = []
     nodes = graph.nodes()
@@ -55,10 +55,18 @@ def smudge_phenos(graph, num_walk, len_walk, genes_without_phenos, super_classes
           elif node in genes_without_phenos: 
               neigbors = graph.neighbors(node) 
               rand_node = random.choice(neigbors)
-              while(rand_node not in genes_with_phenos): #keep walking while not gene/w pheno
+              stumbles = 0
+              while(rand_node not in genes_with_phenos): #keep walking until find gene/w pheno
+                  if (stumbles > 5): #avoids stumbling blindly in the ppi
+                      break
+
                   neigbors = graph.neighbors(rand_node) 
                   rand_node = random.choice(neigbors)
                   path.append(rand_node)
+                  stumbles = stumbles + 1
+
+              if stumbles > 5:
+                  continue  
 
               phenos = genes_phenos[rand_node]
               pheno = random.choice(phenos)
@@ -67,7 +75,7 @@ def smudge_phenos(graph, num_walk, len_walk, genes_without_phenos, super_classes
                 path.append(pheno) #pheno
                 path.extend(path2root)
                 all_walks.append(path)
-                
+
 
     return all_walks
 
@@ -89,7 +97,7 @@ if __name__ == '__main__':
     print('The number of nodes in graph is: {}'.format(len(graph.nodes())))
     print('Walking PPIs and Phenotypes ...')
 
-    walks = smudge_phenos(graph, 500, 20, genes_without_phenos, super_classes, genes_phenos, disease_phenos)
+    walks = smudge_phenos(graph, 500,genes_without_phenos, super_classes, genes_phenos, disease_phenos)
     print('Training the graph corpus...')
     model = Word2Vec(walks,size=512, window=10, min_count=1, sg =1, workers=24)
 
