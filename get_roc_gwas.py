@@ -56,65 +56,65 @@ with open(data_dir+'geneID_symbol-mod.txt') as f:
 		sym2id[sym] = geneID
 
 
-with open(data_dir+'gwas_catalog_v1.0-associations_e91_r2018-01-16.tsv') as f:
+with open(data_dir+'gwas_catalog_v1.0.1-associations_e91_r2018-01-23.tsv') as f:
 	for line in f:
 		if line.startswith('DATE'):
 			continue
 
 		items = line.strip().split('\t')
-		disease = items[7]
+		# disease_name = items[7]
 		reported_genes = items[13].split(',')
-		# efo = items[-2].split('/')[-1]
+		efo = items[-2].split('/')[-1]
 		genes_entr = []
 		for item in reported_genes:
 			if item in sym2id:
 				genes_entr.append(sym2id[item])
 
 		genes_entr = list(set(genes_entr))
-		if disease in disease_genes:
-			disease_genes[disease].extend(genes_entr)
+		if efo in disease_genes:
+			disease_genes[efo].extend(genes_entr)
 		else:
-			disease_genes[disease] = genes_entr
+			disease_genes[efo] = genes_entr
 
-dis_gen_dict = {}
-for item in disease_genes:
-	genes = list(set(disease_genes[item]))
-	dis_gen_dict[item] = genes
 
 genes = gene_embeddings.keys()
 genes_embeds = np.array(gene_embeddings.values())
-gene_pairs = list(itertools.combinations(genes,2)) #all genes pairs
 
-cosine_mat = cosine_similarity(genes_embeds)
-
-#get upper triangle, exclude diagonal itself (self similarities)
-cosine_pairs = cosine_mat[np.triu_indices(len(cosine_mat),1)]
-cosine_idx = np.argsort(cosine_pairs)[::-1]
-sort_pairs = [gene_pairs[arg] for arg in cosine_idx]
-pairs_sorted_idx = dict(zip(sort_pairs,cosine_idx))
 
 label_mat = dict()
-for dis in dis_gen_dict:
-	print dis
-	dis_genes = dis_gen_dict[dis]
-	print 'number of genes: {}'.format(len(dis_genes))
-	spec_pairs = list(itertools.combinations(dis_genes,2)) #genes pairs of particular disease
-	label_vec = [0]*len(sort_pairs)
-	for pair in spec_pairs:
-	 	if pair not in pairs_sorted_idx:
-			pair1 = (pair[1],pair[0])
-			if pair1 in pairs_sorted_idx:
-				idx = pairs_sorted_idx[pair1]
-				label_vec[idx] = 1
-		else:
-			idx = pairs_sorted_idx[pair]
-			label_vec[idx] = 1
+for dis in disease_genes:
+	dis_genes = disease_genes[dis]
+	common_genes = list(set(genes).intersection(set(dis_genes)))
 
-	label_mat[dis] = label_vec
+	if len(common_genes) <= 1:
+		continue
+	
+	print dis
+	print 'number of genes: {}'.format(len(common_genes))
+	gen_dict = {}
+	for gene1 in common_genes:
+		gene_embds = gene_embeddings[gene1]
+		gen_embds = list()
+		gen_embds.append(gene_embds)
+		cos_sim = cosine_similarity(gen_embds, genes_embeds)
+		cos_sim = cos_sim.flatten()
+		sort_sim = np.argsort(cos_sim)[::-1]
+		sort_genes = [genes[arg] for arg in sort_sim]
+		label_vec = [0]*len(genes)
+		for gene2 in common_genes:
+			if gene1 != gene2:
+				if gene2 in sort_genes:
+						label_vec[sort_genes.index(gene2)] = 1
+
+		gen_dict[gene1] = label_vec
+		
+	labels = np.array(gen_dict.values())
+	labels = np.max(labels, axis=0) #get all positives pairs labels for specific dis, all others negative
+	label_mat[dis] = labels
 	
 
-array_tp = np.zeros((len(label_mat),len(gene_pairs)),dtype='float32')
-array_fp = np.zeros((len(label_mat), len(gene_pairs)), dtype = 'float32')
+array_tp = np.zeros((len(label_mat), len(genes)),dtype='float32')
+array_fp = np.zeros((len(label_mat), len(genes)), dtype = 'float32')
 
 for i,row in enumerate(label_mat.values()):
 	elem = np.asarray(row, dtype='float32')
@@ -129,7 +129,11 @@ fpsum = np.sum(array_fp, axis = 0)
 tpr_r = tpsum/max(tpsum)
 fpr_r = fpsum/max(fpsum)
 auc_data2 = np.c_[fpr_r, tpr_r]
-print('Number of GWAS diseases: {} '.format(len(label_mat)))
-print('Number of genes pairs ranked against: {}'.format(len(gene_pairs)))
-print('auc {}'.format(auc(fpr_r, tpr_r)))
+file1 = open(data_dir+'gwas_results.txt','w')
+
+file1.write('Number of GWAS diseases: {} \n'.format(len(label_mat)))
+file1.write('Number of genes ranked against: {}\n'.format(len(genes)))
+file1.write('auc {}\n'.format(auc(fpr_r, tpr_r)))
+file1.close()
+pdb.set_trace()
 

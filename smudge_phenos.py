@@ -85,8 +85,6 @@ if __name__ == '__main__':
     genes_phenos = read_into_dict(data+'human_genes_hpos.txt')
     disease_phenos = read_into_dict(data+'omim_hpos.txt')
     super_classes = read_into_dict(data+'hp_super_classes.txt')
-    genes_with_phenos = list(open(data+'genes_with_human_phenos.txt').readlines())
-    genes_with_phenos = [item.strip() for item in genes_with_phenos]
     genes_without_phenos = list(open(data+'genes_without_human_phenos.txt').readlines())
     genes_without_phenos = [item.strip() for item in genes_without_phenos]
 
@@ -97,7 +95,7 @@ if __name__ == '__main__':
     print('Training the graph corpus...')
     model = Word2Vec(walks,size=512, window=10, min_count=1, sg =1, workers=24)
 
-    model.save_word2vec_format(data+'human_embeddings_500_1.txt')
+    model.save_word2vec_format(data+'human_embeddings_500.txt')
 
     pdb.set_trace()
 
