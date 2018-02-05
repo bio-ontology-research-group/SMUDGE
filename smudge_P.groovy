@@ -1,11 +1,11 @@
 @Grapes([
-	  @Grab(group='org.semanticweb.elk', module='elk-owlapi', version='0.4.3'),
-	  @Grab(group='net.sourceforge.owlapi', module='owlapi-api', version='4.2.5'),
-	  @Grab(group='net.sourceforge.owlapi', module='owlapi-apibinding', version='4.2.5'),
-	  @Grab(group='net.sourceforge.owlapi', module='owlapi-impl', version='4.2.5'),
-	  @Grab(group='net.sourceforge.owlapi', module='owlapi-parsers', version='4.2.5'),
-	  @Grab(group='org.apache.jena', module='apache-jena-libs', version='3.1.0', type='pom')
-	])
+    @Grab(group='org.semanticweb.elk', module='elk-owlapi', version='0.4.3'),
+    @Grab(group='net.sourceforge.owlapi', module='owlapi-api', version='4.2.5'),
+    @Grab(group='net.sourceforge.owlapi', module='owlapi-apibinding', version='4.2.5'),
+    @Grab(group='net.sourceforge.owlapi', module='owlapi-impl', version='4.2.5'),
+    @Grab(group='net.sourceforge.owlapi', module='owlapi-parsers', version='4.2.5'),
+    @Grab(group='org.apache.jena', module='apache-jena-libs', version='3.1.0', type='pom')
+  ])
 
 import org.semanticweb.owlapi.model.parameters.*
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -81,47 +81,30 @@ if (classify) {
   def cc = 0
   new InferredClassAssertionAxiomGenerator().createAxioms(fac, reasoner).each { ax ->
     manager.addAxiom(ont, ax)
-    cc += 1
-  }
-  println "$cc axioms inferred."
-
-  PrintWriter fout = new PrintWriter(new BufferedWriter(new FileWriter(opt.o)))
-
-  //walk ontology upward dfs for each data node
-  new File("../../Documents/smudge_data/pheno2_data.txt").splitEachLine("\t") {line ->
-  def node = line[0]
-  def class_iri = line[1]
-  def curr_path = [node,class_iri]
-  def classes_stack = []
-  classes_stack.push(curr_path)
-
-  if (ont.containsClassInSignature(IRI.create(class_iri))){
-   while(classes_stack){
-     curr_path = classes_stack.pop()
-     last_class = curr_path[-1]
-
-   if (last_class.indexOf('Thing') > -1){
-      fout.print(curr_path[0] + '\t' + curr_path[1].split('/')[-1] + '\t')
-     for (item in curr_path[2..-1]){
-      shortitem = item.split('/')[-1] 
-      if(shortitem.startsWith('HP_') || shortitem.startsWith('MP_')){ //select only HP and MP classes from PhenomNet
-          fout.print('subClassOf'+'\t'+ shortitem +'\t')
-        }
-      }
-      
-      fout.print('\n')
-      continue
+    cc += 1 
     }
-   OWLClass c = fac.getOWLClass(IRI.create(last_class))
-   def superClasses = reasoner.getSuperClasses(c, true)
-   for (Node<OWLClass> parent: superClasses){
-     def superclass = parent.getRepresentativeElement().toString().replaceAll(">","").replaceAll("<","")
-     new_path = curr_path + [superclass]
-     classes_stack.push(new_path)
-    }   
-   }
+    
+  manager.saveOntology(ont, IRI.create(f.toURI()))
+  println "$cc axioms inferred." 
+
+
+PrintWriter fout = new PrintWriter(new BufferedWriter(new FileWriter(opt.o)))
+
+new File("../../Documents/smudge_data/pheno2_data.txt").splitEachLine("\t") {line ->
+def node = line[0]
+def class_iri = line[1]
+fout.print(node+ ' ')
+if (ont.containsClassInSignature(IRI.create(class_iri))){
+  OWLClass c = fac.getOWLClass(IRI.create(class_iri))
+  NodeSet superclasses = reasoner.getSuperClasses(c, false);
+  fout.print(c.getIRI().getShortForm() + " ")
+  for (Node<OWLClass> superc: superclasses){
+    fout.print(superc.getRepresentativeElement().getIRI().getShortForm() + " ")
+      }
   }
- }
- fout.flush()
- fout.close()
+  fout.print('\n')
+}
+
+fout.flush()
+fout.close()
 }

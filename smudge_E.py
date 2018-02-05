@@ -18,7 +18,7 @@ def read_into_dict(file_):
   return some_dict
 
 
-def smudge_phenos(graph, num_walk, genes_without_phenos, super_classes, genes_phenos, disease_phenos):
+def smudge_phenos(graph, num_walk, super_classes, genes_phenos, disease_phenos):
     
     all_walks = []
     nodes = graph.nodes()
@@ -81,21 +81,20 @@ if __name__ == '__main__':
 
     data = '../../../Documents/smudge_data/'
 
-    graph = nx.read_edgelist(data+'human_graph.txt', create_using=nx.DiGraph(), data=(('label', str),))
-    genes_phenos = read_into_dict(data+'human_genes_hpos.txt')
+    #modify input files for human data
+    graph = nx.read_edgelist(data+'mouse_graph.txt', create_using=nx.DiGraph(), data=(('label', str),))
+    genes_phenos = read_into_dict(data+'human_genes_mouse_phen.txt')
     disease_phenos = read_into_dict(data+'omim_hpos.txt')
-    super_classes = read_into_dict(data+'hp_super_classes.txt')
-    genes_without_phenos = list(open(data+'genes_without_human_phenos.txt').readlines())
-    genes_without_phenos = [item.strip() for item in genes_without_phenos]
+    super_classes = read_into_dict(data+'phenomNet_super_classes.txt')
 
     print('The number of nodes in graph is: {}'.format(len(graph.nodes())))
     print('Walking PPIs and Phenotypes ...')
 
-    walks = smudge_phenos(graph, 500, genes_without_phenos, super_classes, genes_phenos, disease_phenos)
+    walks = smudge_phenos(graph, 500, super_classes, genes_phenos, disease_phenos)
     print('Training the graph corpus...')
-    model = Word2Vec(walks,size=512, window=10, min_count=1, sg =1, workers=24)
+    model = Word2Vec(walks,size=512, window=40, min_count=1, sg =1, workers=24)
 
-    model.save_word2vec_format(data+'human_embeddings_500.txt')
+    model.save_word2vec_format(data+'E-Vec_mouse_corpus_500_phenomNet.txt')
 
     pdb.set_trace()
 
