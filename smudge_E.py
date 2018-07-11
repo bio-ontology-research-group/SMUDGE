@@ -79,10 +79,10 @@ def smudge_phenos(graph, num_walk, super_classes, genes_phenos, disease_phenos):
 
 if __name__ == '__main__':
 
-    data = '../../../Documents/smudge_data/'
+    data = '../../../Documents/smudge_updated_data/'
 
     #modify input files for human data
-    graph = nx.read_edgelist(data+'mouse_graph.txt', create_using=nx.DiGraph(), data=(('label', str),))
+    graph = nx.read_edgelist(data+'human_graph.txt', create_using=nx.DiGraph(), data=(('label', str),))
     genes_phenos = read_into_dict(data+'human_genes_mouse_phen.txt')
     disease_phenos = read_into_dict(data+'omim_hpos.txt')
     super_classes = read_into_dict(data+'phenomNet_super_classes.txt')
@@ -92,9 +92,9 @@ if __name__ == '__main__':
 
     walks = smudge_phenos(graph, 500, super_classes, genes_phenos, disease_phenos)
     print('Training the graph corpus...')
-    model = Word2Vec(walks,size=512, window=40, min_count=1, sg =1, workers=24)
+    model = Word2Vec(walks,size=128, window=40, min_count=1, sg =1, workers=24)
 
-    model.save_word2vec_format(data+'E-Vec_mouse_corpus_500_phenomNet.txt')
+    model.save_word2vec_format(data+'smudge_E_Vec_human_embeddings_500.txt')
 
     pdb.set_trace()
 
