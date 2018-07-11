@@ -14,7 +14,7 @@ phenotypes and PPI network
 * smudge_E.py - script to generate the corpus and features vectors of genes and diseases by sampling 
 from the node's surrounding environment, and extracting phenomNet ontology associated and superclasses 
 
-* smudge_ann.py - script to run ANN form Keras package on the gnerated embeddings to evaluate gene-disease association
+* smudge_ann.py - script to run ANN in 5-fold from Keras package on the gnerated embeddings to evaluate gene-disease association
 
 * smudge_logit.py - script to run Logistic regression on the gnerated embeddings to evaluate gene-disease association
 
